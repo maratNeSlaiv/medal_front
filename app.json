@@ -12,16 +12,26 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.maratNeSlaiv.medal-front",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/app.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.maratNeSlaiv.medal-front"
     },
-    "web": {
-      "favicon": "./assets/app.png"
+    "extra": {
+      "authUrl": "http://127.0.0.1:8000",
+      "eas": {
+        "projectId": "7bbbdfb7-0c26-4145-b511-867ac86ebaec"
+      },
+      "supabaseUrl": "https://iitaqkmgzqalesynaypt.supabase.co",
+      "supabaseAnonKey": "sb_secret_dIzcQyB-5vjEO_PUpzFIkA_U234Evs5"
     }
   }
 }

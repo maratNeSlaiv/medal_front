@@ -1,37 +1,64 @@
 import React, { useState } from "react";
-import { View, StyleSheet, TouchableOpacity } from "react-native";
-import { Text } from "react-native-paper";
+import { View, StyleSheet, TouchableOpacity, Alert, Text } from "react-native";
 
 import Background from "../components/Background";
 import Logo from "../components/Logo";
 import Header from "../components/Header";
-import Button from "../components/Button";
 import TextInput from "../components/TextInput";
+import Button from "../components/Button";
 import BackButton from "../components/BackButton";
 import { theme } from "../core/theme";
 import { emailValidator } from "../helpers/emailValidator";
 import { passwordValidator } from "../helpers/passwordValidator";
-import { nameValidator } from "../helpers/nameValidator";
+import { registerUser } from "../helpers/auth";
+import { supabase } from "../helpers/supabaseClient";
 
 export default function RegisterScreen({ navigation }) {
-  const [name, setName] = useState({ value: "", error: "" });
   const [email, setEmail] = useState({ value: "", error: "" });
   const [password, setPassword] = useState({ value: "", error: "" });
+  const [loading, setLoading] = useState(false);
 
-  const onSignUpPressed = () => {
-    const nameError = nameValidator(name.value);
+  // 🔹 Обычная регистрация по email
+  const onSignUpPressed = async () => {
     const emailError = emailValidator(email.value);
     const passwordError = passwordValidator(password.value);
-    if (emailError || passwordError || nameError) {
-      setName({ ...name, error: nameError });
+
+    if (emailError || passwordError) {
       setEmail({ ...email, error: emailError });
       setPassword({ ...password, error: passwordError });
       return;
     }
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "HomeScreen" }],
-    });
+
+    setLoading(true);
+    const result = await registerUser(email.value, password.value);
+    setLoading(false);
+
+    if (result.success) {
+      Alert.alert(
+        "Success",
+        "Confirmation letter was sent to your email",
+        [{ text: "OK", onPress: () => navigation.replace("LoginScreen") }]
+      );
+    } else {
+      Alert.alert("Error", result.message);
+    }
+  };
+
+  // 🔹 Авторизация через Google (через Supabase SDK)
+  const signInWithGoogle = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: "com.myapp://login-callback", // укажи deep link
+        },
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error("Google Sign-in error:", error.message);
+      Alert.alert("Error", "Unable to sign in with Google");
+    }
   };
 
   return (
@@ -39,14 +66,7 @@ export default function RegisterScreen({ navigation }) {
       <BackButton goBack={navigation.goBack} />
       <Logo />
       <Header>Welcome.</Header>
-      <TextInput
-        label="Name"
-        returnKeyType="next"
-        value={name.value}
-        onChangeText={(text) => setName({ value: text, error: "" })}
-        error={!!name.error}
-        errorText={name.error}
-      />
+
       <TextInput
         label="Email"
         returnKeyType="next"
@@ -55,10 +75,9 @@ export default function RegisterScreen({ navigation }) {
         error={!!email.error}
         errorText={email.error}
         autoCapitalize="none"
-        autoCompleteType="email"
-        textContentType="emailAddress"
         keyboardType="email-address"
       />
+
       <TextInput
         label="Password"
         returnKeyType="done"
@@ -68,15 +87,27 @@ export default function RegisterScreen({ navigation }) {
         errorText={password.error}
         secureTextEntry
       />
+
       <Button
         mode="contained"
         onPress={onSignUpPressed}
+        loading={loading}
         style={{ marginTop: 24 }}
       >
         Next
       </Button>
+
+      {/* ✅ Google Sign-In через Supabase */}
+      <TouchableOpacity
+        onPress={signInWithGoogle}
+        style={styles.googleButton}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.googleText}>Continue with Google</Text>
+      </TouchableOpacity>
+
       <View style={styles.row}>
-        <Text>I already have an account !</Text>
+        <Text>I already have an account!</Text>
       </View>
       <View style={styles.row}>
         <TouchableOpacity onPress={() => navigation.replace("LoginScreen")}>
@@ -95,5 +126,19 @@ const styles = StyleSheet.create({
   link: {
     fontWeight: "bold",
     color: theme.colors.primary,
+  },
+  googleButton: {
+    marginTop: 20,
+    backgroundColor: "#4285F4",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: "center",
+    width: 230,
+  },
+  googleText: {
+    color: "white",
+    fontWeight: "600",
+    fontSize: 16,
   },
 });
