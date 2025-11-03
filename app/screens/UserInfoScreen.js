@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Picker } from "@react-native-picker/picker";
+import countries from "world-countries";
 
 export default function UserInfoScreen() {
   const [user, setUser] = useState({
@@ -21,19 +23,32 @@ export default function UserInfoScreen() {
     genre: "Male",
   });
 
+  const [tempUser, setTempUser] = useState(user);
   const [isEditing, setIsEditing] = useState(false);
 
   const handleChange = (field, value) => {
-    setUser({ ...user, [field]: value });
+    setTempUser({ ...tempUser, [field]: value });
   };
 
   const handleSave = () => {
+    setUser(tempUser);
     setIsEditing(false);
     Alert.alert(
       "Profile Updated",
       "Your information has been saved successfully.",
     );
   };
+
+  const handleCancel = () => {
+    setTempUser(user); // discard changes
+    setIsEditing(false);
+  };
+
+  const countryOptions = countries
+    .map((c) => c.name.common)
+    .sort((a, b) => a.localeCompare(b));
+
+  const genreOptions = ["Male", "Female", "Non-binary", "Prefer not to say"];
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
@@ -45,7 +60,7 @@ export default function UserInfoScreen() {
             <Text style={styles.label}>First Name</Text>
             <TextInput
               style={[styles.input, !isEditing && styles.disabled]}
-              value={user.firstName}
+              value={tempUser.firstName}
               onChangeText={(v) => handleChange("firstName", v)}
               editable={isEditing}
               placeholder="First Name"
@@ -56,7 +71,7 @@ export default function UserInfoScreen() {
             <Text style={styles.label}>Last Name</Text>
             <TextInput
               style={[styles.input, !isEditing && styles.disabled]}
-              value={user.lastName}
+              value={tempUser.lastName}
               onChangeText={(v) => handleChange("lastName", v)}
               editable={isEditing}
               placeholder="Last Name"
@@ -64,36 +79,77 @@ export default function UserInfoScreen() {
           </View>
 
           <View style={styles.row}>
-            <Text style={styles.label}>Nationality</Text>
-            <TextInput
-              style={[styles.input, !isEditing && styles.disabled]}
-              value={user.nationality}
-              onChangeText={(v) => handleChange("nationality", v)}
-              editable={isEditing}
-              placeholder="Nationality"
-            />
+            <Text style={styles.label}>Country of Origin</Text>
+            {isEditing ? (
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={tempUser.country}
+                  onValueChange={(v) => handleChange("country", v)}
+                >
+                  {countryOptions.map((country) => (
+                    <Picker.Item
+                      label={country}
+                      value={country}
+                      key={country}
+                    />
+                  ))}
+                </Picker>
+              </View>
+            ) : (
+              <TextInput
+                style={[styles.input, styles.disabled]}
+                value={tempUser.country}
+                editable={false}
+              />
+            )}
           </View>
 
           <View style={styles.row}>
             <Text style={styles.label}>Country of Residence</Text>
-            <TextInput
-              style={[styles.input, !isEditing && styles.disabled]}
-              value={user.country}
-              onChangeText={(v) => handleChange("country", v)}
-              editable={isEditing}
-              placeholder="Country of Residence"
-            />
+            {isEditing ? (
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={tempUser.country}
+                  onValueChange={(v) => handleChange("country", v)}
+                >
+                  {countryOptions.map((country) => (
+                    <Picker.Item
+                      label={country}
+                      value={country}
+                      key={country}
+                    />
+                  ))}
+                </Picker>
+              </View>
+            ) : (
+              <TextInput
+                style={[styles.input, styles.disabled]}
+                value={tempUser.country}
+                editable={false}
+              />
+            )}
           </View>
 
           <View style={styles.row}>
             <Text style={styles.label}>Genre</Text>
-            <TextInput
-              style={[styles.input, !isEditing && styles.disabled]}
-              value={user.genre}
-              onChangeText={(v) => handleChange("genre", v)}
-              editable={isEditing}
-              placeholder="Genre"
-            />
+            {isEditing ? (
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={tempUser.genre}
+                  onValueChange={(v) => handleChange("genre", v)}
+                >
+                  {genreOptions.map((g) => (
+                    <Picker.Item label={g} value={g} key={g} />
+                  ))}
+                </Picker>
+              </View>
+            ) : (
+              <TextInput
+                style={[styles.input, styles.disabled]}
+                value={tempUser.genre}
+                editable={false}
+              />
+            )}
           </View>
         </View>
 
@@ -106,10 +162,20 @@ export default function UserInfoScreen() {
             <Text style={styles.editButtonText}>Edit</Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <Ionicons name="save-outline" size={22} color="#fff" />
-            <Text style={styles.editButtonText}>Save</Text>
-          </TouchableOpacity>
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={handleCancel}
+            >
+              <Ionicons name="close-outline" size={22} color="#fff" />
+              <Text style={styles.editButtonText}>Cancel</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+              <Ionicons name="save-outline" size={22} color="#fff" />
+              <Text style={styles.editButtonText}>Save</Text>
+            </TouchableOpacity>
+          </View>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -159,6 +225,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#eee",
     color: "#555",
   },
+  pickerWrapper: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+  },
   editButton: {
     backgroundColor: "#007AFF",
     flexDirection: "row",
@@ -167,7 +239,22 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 10,
   },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: "#FF3B30",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderRadius: 10,
+  },
   saveButton: {
+    flex: 1,
     backgroundColor: "#34C759",
     flexDirection: "row",
     alignItems: "center",
