@@ -75,22 +75,6 @@ export default function UserInfoScreen() {
           </View>
 
           <View style={styles.row}>
-            <Text style={styles.label}>Background</Text>
-            <TextInput
-              style={[
-                styles.input,
-                !isEditing && styles.disabled,
-                { height: 80 },
-              ]}
-              value={user.background}
-              onChangeText={(v) => handleChange("background", v)}
-              editable={isEditing}
-              placeholder="Background or Occupation"
-              multiline
-            />
-          </View>
-
-          <View style={styles.row}>
             <Text style={styles.label}>Country of Residence</Text>
             <TextInput
               style={[styles.input, !isEditing && styles.disabled]}
