@@ -11,7 +11,7 @@ import BackButton from "../components/BackButton";
 import { theme } from "../core/theme";
 import { emailValidator } from "../helpers/emailValidator";
 import { passwordValidator } from "../helpers/passwordValidator";
-import { loginUser } from "../helpers/auth";
+import { login } from "../core/api";
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState({ value: "", error: "" });
@@ -21,6 +21,7 @@ export default function LoginScreen({ navigation }) {
   const onLoginPressed = async () => {
     const emailError = emailValidator(email.value);
     const passwordError = passwordValidator(password.value);
+
     if (emailError || passwordError) {
       setEmail({ ...email, error: emailError });
       setPassword({ ...password, error: passwordError });
@@ -28,18 +29,16 @@ export default function LoginScreen({ navigation }) {
     }
 
     setLoading(true);
-    const result = await loginUser(email.value, password.value);
+    const result = await login(email.value, password.value);
     setLoading(false);
 
-    if (result.success) {
-      // Логин успешен, переходим на HomeScreen
+    if (result.token) {
       navigation.reset({
         index: 0,
-        routes: [{ name: "HomeScreen" }],
+        routes: [{ name: "Home" }],
       });
     } else {
-      // Показать ошибку от сервера
-      alert(result.message || "Ошибка при логине");
+      alert(result.error || result.message || "Login failed");
     }
   };
 
@@ -48,6 +47,7 @@ export default function LoginScreen({ navigation }) {
       <BackButton goBack={navigation.goBack} />
       <Logo />
       <Header>Hello.</Header>
+
       <TextInput
         label="Email"
         returnKeyType="next"
@@ -56,10 +56,9 @@ export default function LoginScreen({ navigation }) {
         error={!!email.error}
         errorText={email.error}
         autoCapitalize="none"
-        autoCompleteType="email"
-        textContentType="emailAddress"
         keyboardType="email-address"
       />
+
       <TextInput
         label="Password"
         returnKeyType="done"
@@ -69,22 +68,26 @@ export default function LoginScreen({ navigation }) {
         errorText={password.error}
         secureTextEntry
       />
+
       <View style={styles.forgotPassword}>
         <TouchableOpacity
           onPress={() => navigation.navigate("ResetPasswordScreen")}
         >
-          <Text style={styles.forgot}>Forgot your password ?</Text>
+          <Text style={styles.forgot}>Forgot your password?</Text>
         </TouchableOpacity>
       </View>
-      <Button mode="contained" onPress={onLoginPressed}>
+
+      <Button mode="contained" onPress={onLoginPressed} loading={loading}>
         Log in
       </Button>
+
       <View style={styles.row}>
-        <Text>You do not have an account yet ?</Text>
+        <Text>You do not have an account yet?</Text>
       </View>
+
       <View style={styles.row}>
         <TouchableOpacity onPress={() => navigation.replace("RegisterScreen")}>
-          <Text style={styles.link}>Create !</Text>
+          <Text style={styles.link}>Create!</Text>
         </TouchableOpacity>
       </View>
     </Background>

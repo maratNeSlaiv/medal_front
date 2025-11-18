@@ -12,6 +12,7 @@ import {
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
+import { predictMole } from "../core/api";
 
 export default function TakePictureScreen() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -19,6 +20,33 @@ export default function TakePictureScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [probability, setProbability] = useState(null);
   const cameraRef = useRef(null);
+
+  const analyzeImage = async () => {
+    if (!image) return;
+
+    try {
+      setIsLoading(true);
+      setProbability(null);
+
+      const result = await predictMole(image);
+
+      setIsLoading(false);
+
+      if (result.error) {
+        Alert.alert("Error", result.error);
+        return;
+      }
+
+      // Backend returns { probabilities: { Benign, Malignant } }
+      const malignant = result.probabilities.Malignant;
+      const prob = Math.floor(malignant * 100);
+
+      setProbability(prob);
+    } catch (err) {
+      setIsLoading(false);
+      Alert.alert("Error", "Server connection failed.");
+    }
+  };
 
   useEffect(() => {
     requestPermission();
@@ -59,17 +87,6 @@ export default function TakePictureScreen() {
     if (!result.canceled) {
       setImage(result.assets[0].uri);
     }
-  };
-
-  // mock analysis
-  const analyzeImage = async () => {
-    if (!image) return;
-    setIsLoading(true);
-    setTimeout(() => {
-      const randomProb = Math.floor(Math.random() * 100);
-      setProbability(randomProb);
-      setIsLoading(false);
-    }, 1500);
   };
 
   const getColor = (prob) => {

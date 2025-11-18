@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Alert } from "react-native";
-import email from "react-native-email-link";
 
 import Background from "../components/Background";
 import BackButton from "../components/BackButton";
@@ -8,42 +7,45 @@ import Logo from "../components/Logo";
 import Header from "../components/Header";
 import TextInput from "../components/TextInput";
 import Button from "../components/Button";
-import { emailValidator } from "../helpers/emailValidator";
-import { forgotPassword } from "../helpers/auth";
+
+import { resetPassword } from "../core/api";
 
 export default function ResetPasswordScreen({ navigation }) {
-  const [emailInput, setEmailInput] = useState({ value: "", error: "" });
+  const [username, setUsername] = useState({ value: "", error: "" });
+  const [oldPassword, setOldPassword] = useState({ value: "", error: "" });
+  const [newPassword, setNewPassword] = useState({ value: "", error: "" });
+
   const [loading, setLoading] = useState(false);
 
-  const sendResetPasswordEmail = async () => {
-    const emailError = emailValidator(emailInput.value);
-    if (emailError) {
-      setEmailInput({ ...emailInput, error: emailError });
+  const onSubmit = async () => {
+    if (!username.value) {
+      setUsername({ ...username, error: "Username is required" });
+      return;
+    }
+    if (!oldPassword.value) {
+      setOldPassword({ ...oldPassword, error: "Old password is required" });
+      return;
+    }
+    if (!newPassword.value) {
+      setNewPassword({ ...newPassword, error: "New password is required" });
       return;
     }
 
     setLoading(true);
-    try {
-      const response = await forgotPassword(emailInput.value);
 
-      if (response.success) {
-        // Попытка открыть почтовое приложение
-        email({ to: emailInput.value }).catch(() => {
-          Alert.alert(
-            "Email App Not Found",
-            "Не удалось открыть почтовое приложение. Проверьте настройки или откройте почту вручную."
-          );
-        });
+    const response = await resetPassword(
+      username.value,
+      oldPassword.value,
+      newPassword.value,
+    );
 
-        // Можно сразу переходить на экран логина
-        navigation.navigate("LoginScreen");
-      } else {
-        Alert.alert("Error", response.message || "Something went wrong");
-      }
-    } catch (err) {
-      Alert.alert("Error", "Something went wrong");
-    } finally {
-      setLoading(false);
+    setLoading(false);
+
+    if (response.message === "Password updated successfully") {
+      Alert.alert("Success", "Your password has been updated.");
+      navigation.navigate("LoginScreen");
+    } else {
+      Alert.alert("Error", response.error || "Something went wrong");
     }
   };
 
@@ -51,27 +53,42 @@ export default function ResetPasswordScreen({ navigation }) {
     <Background>
       <BackButton goBack={navigation.goBack} />
       <Logo />
-      <Header>Reset your password.</Header>
+
+      <Header>Reset Password</Header>
+
       <TextInput
-        label="Email"
-        returnKeyType="done"
-        value={emailInput.value}
-        onChangeText={(text) => setEmailInput({ value: text, error: "" })}
-        error={!!emailInput.error}
-        errorText={emailInput.error}
-        autoCapitalize="none"
-        autoCompleteType="email"
-        textContentType="emailAddress"
-        keyboardType="email-address"
-        description="You will receive an email with the reset link."
+        label="Username"
+        value={username.value}
+        onChangeText={(text) => setUsername({ value: text, error: "" })}
+        error={!!username.error}
+        errorText={username.error}
       />
+
+      <TextInput
+        label="Old Password"
+        value={oldPassword.value}
+        secureTextEntry
+        onChangeText={(text) => setOldPassword({ value: text, error: "" })}
+        error={!!oldPassword.error}
+        errorText={oldPassword.error}
+      />
+
+      <TextInput
+        label="New Password"
+        value={newPassword.value}
+        secureTextEntry
+        onChangeText={(text) => setNewPassword({ value: text, error: "" })}
+        error={!!newPassword.error}
+        errorText={newPassword.error}
+      />
+
       <Button
         mode="contained"
-        onPress={sendResetPasswordEmail}
+        onPress={onSubmit}
         style={{ marginTop: 16 }}
         loading={loading}
       >
-        Continue
+        Update Password
       </Button>
     </Background>
   );
