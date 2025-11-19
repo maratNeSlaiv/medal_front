@@ -9,7 +9,7 @@ import * as SplashScreen from "expo-splash-screen";
 
 SplashScreen.preventAutoHideAsync();
 
-export default function HomeScreen({ navigation }) {
+export default function MedDocsScreen({ navigation }) {
   const [results, setResults] = useState(null);
   const [images, setImages] = useState([]);
   const [fullscreenImage, setFullscreenImage] = useState(null);

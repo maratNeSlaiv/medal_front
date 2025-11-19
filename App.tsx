@@ -4,13 +4,14 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
 import { theme } from "./app/core/theme";
+
 import {
   StartScreen,
   LoginScreen,
   RegisterScreen,
   ResetPasswordScreen,
   HomeScreen,
-  MedDocsScreen,
+  // MedDocsScreen,
 } from "./app/screens";
 
 const Stack = createStackNavigator();
@@ -30,7 +31,7 @@ export default function App() {
           <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
           <Stack.Screen name="HomeScreen" component={HomeScreen} />
           <Stack.Screen name="ResetPasswordScreen" component={ResetPasswordScreen}/>
-          <Stack.Screen name="MedDocsScreen" component={MedDocsScreen} />
+          {/* <Stack.Screen name="MedDocsScreen" component={MedDocsScreen} /> */}
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>
