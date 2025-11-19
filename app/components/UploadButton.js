@@ -2,7 +2,7 @@ import React from "react";
 import { TouchableOpacity } from "react-native";
 import { Plus } from "lucide-react-native";
 
-export function UploadButton({ onPress }: { onPress: () => void }) {
+export function UploadButton({ onPress }) {
   return (
     <TouchableOpacity
       onPress={onPress}

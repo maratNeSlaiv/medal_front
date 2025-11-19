@@ -1,8 +1,8 @@
-import { StyleSheet, TouchableHighlight, View, ViewProps, TouchableHighlightProps } from 'react-native';
-import * as Colors from '@bacons/apple-colors';
 import React from 'react';
+import { StyleSheet, TouchableHighlight, View } from 'react-native';
+import * as Colors from '@bacons/apple-colors';
 
-export function FormItem({ children, onPress }: Pick<ViewProps, 'children'> & Pick<TouchableHighlightProps, 'onPress'>) {
+export function FormItem({ children, onPress }) {
   return (
     <TouchableHighlight
       style={{ padding: 12, paddingLeft: 16 }}
@@ -16,7 +16,7 @@ export function FormItem({ children, onPress }: Pick<ViewProps, 'children'> & Pi
   );
 }
 
-export function FormList({ children, ...props }: ViewProps) {
+export function FormList({ children, style, ...props }) {
   const childrenWithSeparator = React.Children.map(children, (child, index) => {
     if (React.isValidElement(child)) {
       const isLastChild = index === React.Children.count(children) - 1;
@@ -39,7 +39,7 @@ export function FormList({ children, ...props }: ViewProps) {
           overflow: 'hidden',
           backgroundColor: Colors.secondarySystemGroupedBackground,
         },
-        props.style,
+        style,
       ]}
     >
       {childrenWithSeparator}

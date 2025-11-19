@@ -6,3 +6,4 @@ export { default as HomeScreen } from "./HomeScreen";
 export { default as HistoryScreen } from "./HistoryScreen";
 export { default as TakePictureScreen } from "./TakePictureScreen";
 export { default as UserInfoScreen } from "./UserInfoScreen";
+export { default as MedDocsScreen } from "./MedDocsScreen";

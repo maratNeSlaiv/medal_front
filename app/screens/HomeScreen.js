@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import HistoryScreen from "./HistoryScreen";
 import TakePictureScreen from "./TakePictureScreen";
 import UserInfoScreen from "./UserInfoScreen";
+// import MedDocsScreen from "./MedDocsScreen";
 
 const Tab = createBottomTabNavigator();
 
