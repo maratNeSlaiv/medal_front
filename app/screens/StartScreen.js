@@ -26,6 +26,15 @@ export default function StartScreen({ navigation }) {
       >
         Create an account
       </Button>
+
+      {/* Кнопка для перехода на главную страницу */}
+      <Button
+        mode="outlined"
+        onPress={() => navigation.navigate("HomeScreen")}
+        style={{ marginTop: 12 }}
+      >
+        Go to Home
+      </Button>
     </Background>
   );
 }

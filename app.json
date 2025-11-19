@@ -1,5 +1,6 @@
 {
   "expo": {
+    "scheme": "com.medal",
     "name": "medal_front",
     "slug": "medal_front",
     "version": "1.0.0",
