@@ -1,11 +1,11 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import HistoryScreen from "./HistoryScreen";
 import TakePictureScreen from "./TakePictureScreen";
 import UserInfoScreen from "./UserInfoScreen";
-// import MedDocsScreen from "./MedDocsScreen";
+import MedDocsScreen from "./MedDocsScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -22,6 +22,7 @@ export default function HomeScreen() {
           if (route.name === "History") iconName = "time-outline";
           else if (route.name === "Take Picture") iconName = "camera-outline";
           else if (route.name === "User Info") iconName = "person-outline";
+          else if (route.name === "Med Docs") iconName = "document-text-outline";
           return <Ionicons name={iconName} size={size} color={color} />;
         },
       })}
@@ -29,26 +30,13 @@ export default function HomeScreen() {
       <Tab.Screen name="History" component={HistoryScreen} />
       <Tab.Screen name="Take Picture" component={TakePictureScreen} />
       <Tab.Screen name="User Info" component={UserInfoScreen} />
+      <Tab.Screen name="Med Docs" component={MedDocsScreen} />
     </Tab.Navigator>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  text: {
-    fontSize: 16,
-    color: "#555",
-    textAlign: "center",
-    marginHorizontal: 20,
-  },
+  container: { flex: 1, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" },
+  title: { fontSize: 22, fontWeight: "600", marginBottom: 8 },
+  text: { fontSize: 16, color: "#555", textAlign: "center", marginHorizontal: 20 },
 });

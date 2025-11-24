@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { ScrollView, View, Image, TouchableOpacity, Modal, TextInput, FlatList, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { ScrollView, View, Image, TouchableOpacity, Modal, TextInput, FlatList, StyleSheet, ActivityIndicator } from "react-native";
 import Background from "../components/Background";
 import Header from "../components/Header";
 import Button from "../components/Button";
@@ -8,9 +8,6 @@ import { FormItem, FormList } from "../components/Form";
 import { UploadButton } from "../components/UploadButton";
 import * as Colors from "@bacons/apple-colors";
 import { pickImages } from "../helpers/imagePicker";
-import * as SplashScreen from "expo-splash-screen";
-
-SplashScreen.preventAutoHideAsync();
 
 export default function MedDocsScreen({ navigation }) {
   const [results, setResults] = useState(null);
@@ -18,19 +15,20 @@ export default function MedDocsScreen({ navigation }) {
   const [fullscreenImage, setFullscreenImage] = useState(null);
   const [texts, setTexts] = useState({});
   const [textModal, setTextModal] = useState({ visible: false, index: null, value: "" });
-
-  useEffect(() => {
-    const hideSplash = async () => {
-      await SplashScreen.hideAsync();
-    };
-    hideSplash();
-  }, []);
+  const [loading, setLoading] = useState(false);
 
   const pickImagesWithResults = async () => {
-    const result = await pickImages();
-    if (result) {
-      setResults(result.serverResponse);
-      setImages(prev => [...prev, ...result.assets]);
+    setLoading(true);
+    try {
+      const result = await pickImages();
+      if (result) {
+        setResults(result.serverResponse);
+        setImages(prev => [...prev, ...result.assets]);
+      }
+    } catch (e) {
+      console.warn(e);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -81,12 +79,16 @@ export default function MedDocsScreen({ navigation }) {
           </FormItem>
         </FormList>
 
+        {loading && <ActivityIndicator size="large" style={{ marginVertical: 16 }} />}
+
         {images.length > 0 && (
           <FlatList
             data={images}
             keyExtractor={(item, index) => index.toString()}
             renderItem={renderImageItem}
             ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+            initialNumToRender={2}
+            removeClippedSubviews
           />
         )}
 
@@ -106,28 +108,32 @@ export default function MedDocsScreen({ navigation }) {
         </Button>
 
         {/* Fullscreen Modal */}
-        <Modal visible={!!fullscreenImage} transparent animationType="fade" onRequestClose={() => setFullscreenImage(null)}>
-          <TouchableOpacity style={styles.fullscreenContainer} onPress={() => setFullscreenImage(null)}>
-            <Image source={{ uri: fullscreenImage }} style={styles.fullscreenImage} resizeMode="contain" />
-          </TouchableOpacity>
-        </Modal>
+        {fullscreenImage && (
+          <Modal visible={true} transparent animationType="fade" onRequestClose={() => setFullscreenImage(null)}>
+            <TouchableOpacity style={styles.fullscreenContainer} onPress={() => setFullscreenImage(null)}>
+              <Image source={{ uri: fullscreenImage }} style={styles.fullscreenImage} resizeMode="contain" />
+            </TouchableOpacity>
+          </Modal>
+        )}
 
         {/* Text Input Modal */}
-        <Modal visible={textModal.visible} transparent animationType="fade" onRequestClose={() => setTextModal({ visible: false, index: null, value: "" })}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <TextInput
-                style={styles.modalInput}
-                value={textModal.value}
-                onChangeText={text => setTextModal(prev => ({ ...prev, value: text }))}
-                placeholder="Enter text for this image"
-                multiline
-              />
-              <Button mode="contained" onPress={saveText}>Save</Button>
-              <Button mode="outlined" onPress={() => setTextModal({ visible: false, index: null, value: "" })}>Cancel</Button>
+        {textModal.visible && (
+          <Modal visible={true} transparent animationType="fade" onRequestClose={() => setTextModal({ visible: false, index: null, value: "" })}>
+            <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                <TextInput
+                  style={styles.modalInput}
+                  value={textModal.value}
+                  onChangeText={text => setTextModal(prev => ({ ...prev, value: text }))}
+                  placeholder="Enter text for this image"
+                  multiline
+                />
+                <Button mode="contained" onPress={saveText}>Save</Button>
+                <Button mode="outlined" onPress={() => setTextModal({ visible: false, index: null, value: "" })}>Cancel</Button>
+              </View>
             </View>
-          </View>
-        </Modal>
+          </Modal>
+        )}
       </ScrollView>
     </Background>
   );
