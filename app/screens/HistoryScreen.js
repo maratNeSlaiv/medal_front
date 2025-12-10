@@ -1,65 +1,73 @@
-import React from "react";
-import { View, Text, StyleSheet, Image, FlatList } from "react-native";
+import React, { useState } from "react";
+import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-// Mock data
-const mockData = [
-  {
-    id: "1",
-    date: "2025-10-12",
-    image:
-      "https://images.unsplash.com/photo-1600959907703-121d1ec43d59?auto=format&fit=crop&w=300&q=60",
-    probability: 12,
-  },
-  {
-    id: "2",
-    date: "2025-10-20",
-    image:
-      "https://images.unsplash.com/photo-1612548402288-f9c64be6f6e5?auto=format&fit=crop&w=300&q=60",
-    probability: 37,
-  },
-  {
-    id: "3",
-    date: "2025-11-01",
-    image:
-      "https://images.unsplash.com/photo-1576765608501-e287b89b7d7d?auto=format&fit=crop&w=300&q=60",
-    probability: 72,
-  },
-];
-
-function HistoryItem({ item }) {
-  const color =
-    item.probability < 30
-      ? "#4CAF50"
-      : item.probability < 60
-        ? "#FFC107"
-        : "#F44336";
-  return (
-    <View style={styles.card}>
-      <Image source={{ uri: item.image }} style={styles.image} />
-      <View style={styles.info}>
-        <Text style={styles.date}>{item.date}</Text>
-        <Text style={[styles.prob, { color }]}>
-          Cancer probability: {item.probability}%
-        </Text>
-      </View>
-    </View>
-  );
-}
+import * as ImagePicker from "expo-image-picker";
+import { predictMole } from "../core/api"; // твой API-файл
 
 export default function HistoryScreen() {
+  const [currentImage, setCurrentImage] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handlePickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") return alert("Permission to access gallery is required.");
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      quality: 0.7,
+      base64: false,
+    });
+
+    if (!result.cancelled) {
+      setLoading(true);
+      try {
+        const prediction = await predictMole(result.uri);
+        setCurrentImage({
+          id: Date.now().toString(),
+          date: new Date().toISOString().split("T")[0],
+          image: result.uri,
+          probability: prediction.probability, // предполагаем, что API возвращает { probability: number }
+        });
+      } catch (err) {
+        alert("Failed to analyze mole.");
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const renderImage = () => {
+    if (!currentImage) return null;
+
+    const color =
+      currentImage.probability < 30
+        ? "#4CAF50"
+        : currentImage.probability < 60
+        ? "#FFC107"
+        : "#F44336";
+
+    return (
+      <View style={styles.card}>
+        <Image source={{ uri: currentImage.image }} style={styles.image} />
+        <View style={styles.info}>
+          <Text style={styles.date}>{currentImage.date}</Text>
+          <Text style={[styles.prob, { color }]}>
+            Cancer probability: {currentImage.probability}%
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <FlatList
-        data={mockData}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <HistoryItem item={item} />}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
-        ListHeaderComponent={
-          <Text style={styles.header}>Analysis History</Text>
-        }
-      />
+      <Text style={styles.header}>Analysis</Text>
+      <TouchableOpacity style={styles.button} onPress={handlePickImage}>
+        <Text style={styles.buttonText}>Upload Photo</Text>
+      </TouchableOpacity>
+
+      {loading && <ActivityIndicator size="large" color="#000" style={{ marginVertical: 20 }} />}
+
+      {renderImage()}
     </SafeAreaView>
   );
 }
@@ -73,7 +81,20 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "700",
     textAlign: "center",
-    marginVertical: 30,
+    marginVertical: 20,
+  },
+  button: {
+    backgroundColor: "#2196F3",
+    marginHorizontal: 50,
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "600",
+    textAlign: "center",
+    fontSize: 16,
   },
   card: {
     marginHorizontal: 20,

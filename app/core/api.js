@@ -96,13 +96,13 @@ export async function predictMole(imageUri) {
   const token = await getAccessToken();
 
   const formData = new FormData();
-  formData.append("image", {
+  formData.append("file", {
     uri: imageUri,
     name: "mole.jpg",
     type: "image/jpeg",
-  });
+  });  
 
-  const res = await fetch(`${BASE_URL}/mole/predict`, {
+  const res = await fetch(`${BASE_URL}/ai/mole_detection`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
