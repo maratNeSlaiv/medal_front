@@ -10,7 +10,7 @@ import BackButton from "../components/BackButton";
 import { theme } from "../core/theme";
 import { emailValidator } from "../helpers/emailValidator";
 import { passwordValidator } from "../helpers/passwordValidator";
-import { signup } from "../core/api";
+import { register } from "../core/api";
 
 export default function RegisterScreen({ navigation }) {
   const [email, setEmail] = useState({ value: "", error: "" });
@@ -30,16 +30,17 @@ export default function RegisterScreen({ navigation }) {
 
     setLoading(true);
 
-    const result = await signup(email.value, password.value);
+    const result = await register(email.value, password.value);
 
     setLoading(false);
 
-    if (result.error) {
-      Alert.alert("Error", result.error);
+    if (result.error || result.message) {
+      Alert.alert("Error", result.error || result.message);
+      setLoading(false);
       return;
     }
-
-    Alert.alert("Success", "Account created successfully.", [
+    
+    Alert.alert("Success", "Account created successfully!", [
       { text: "OK", onPress: () => navigation.replace("LoginScreen") },
     ]);
   };

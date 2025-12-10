@@ -2,10 +2,12 @@ import React from "react";
 import { StyleSheet } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
+
 import HistoryScreen from "./HistoryScreen";
 import TakePictureScreen from "./TakePictureScreen";
 import UserInfoScreen from "./UserInfoScreen";
 import MedDocsScreen from "./MedDocsScreen";
+import ChatScreen from "./ChatScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -23,6 +25,7 @@ export default function HomeScreen() {
           else if (route.name === "Take Picture") iconName = "camera-outline";
           else if (route.name === "User Info") iconName = "person-outline";
           else if (route.name === "Med Docs") iconName = "document-text-outline";
+          else if (route.name === "Chat") iconName = "chatbubble-outline";
           return <Ionicons name={iconName} size={size} color={color} />;
         },
       })}
@@ -31,6 +34,7 @@ export default function HomeScreen() {
       <Tab.Screen name="Take Picture" component={TakePictureScreen} />
       <Tab.Screen name="User Info" component={UserInfoScreen} />
       <Tab.Screen name="Med Docs" component={MedDocsScreen} />
+      <Tab.Screen name="Chat" component={ChatScreen} />
     </Tab.Navigator>
   );
 }

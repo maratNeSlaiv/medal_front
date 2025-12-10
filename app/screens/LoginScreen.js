@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { TouchableOpacity, StyleSheet, View } from "react-native";
+import React, { useState, useContext } from "react";
+import { TouchableOpacity, StyleSheet, View, Alert } from "react-native";
 import { Text } from "react-native-paper";
 
 import Background from "../components/Background";
@@ -8,12 +8,16 @@ import Header from "../components/Header";
 import TextInput from "../components/TextInput";
 import Button from "../components/Button";
 import BackButton from "../components/BackButton";
+
 import { theme } from "../core/theme";
 import { emailValidator } from "../helpers/emailValidator";
 import { passwordValidator } from "../helpers/passwordValidator";
 import { login } from "../core/api";
+import { AuthContext } from "../core/AuthContext";
 
 export default function LoginScreen({ navigation }) {
+  const { setAuthenticated } = useContext(AuthContext);
+
   const [email, setEmail] = useState({ value: "", error: "" });
   const [password, setPassword] = useState({ value: "", error: "" });
   const [loading, setLoading] = useState(false);
@@ -29,16 +33,19 @@ export default function LoginScreen({ navigation }) {
     }
 
     setLoading(true);
-    const result = await login(email.value, password.value);
-    setLoading(false);
+    try {
+      const result = await login(email.value, password.value);
+      setLoading(false);
 
-    if (result.token) {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Home" }],
-      });
-    } else {
-      alert(result.error || result.message || "Login failed");
+      if (result.access_token) {
+        // Устанавливаем авторизацию → RootNavigator покажет HomeScreen
+        setAuthenticated(true);
+      } else {
+        Alert.alert("Ошибка", result.error || result.message || "Login failed");
+      }
+    } catch (err) {
+      setLoading(false);
+      Alert.alert("Ошибка", err.message || "Login failed");
     }
   };
 

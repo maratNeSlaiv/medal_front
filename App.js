@@ -1,37 +1,18 @@
 import React from "react";
 import { Provider } from "react-native-paper";
 import { NavigationContainer } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
-
 import { theme } from "./app/core/theme";
-
-import {
-  StartScreen,
-  LoginScreen,
-  RegisterScreen,
-  ResetPasswordScreen,
-  HomeScreen,
-  MedDocsScreen,
-} from "./app/screens";
-
-const Stack = createStackNavigator();
+import { AuthProvider } from "./app/core/AuthContext";
+import RootNavigator from "./app/navigation/RootNavigator";
 
 export default function App() {
   return (
     <Provider theme={theme}>
-      <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName="HomeScreen"
-          screenOptions={{ headerShown: false }}
-        >
-          <Stack.Screen name="StartScreen" component={StartScreen} />
-          <Stack.Screen name="LoginScreen" component={LoginScreen} />
-          <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
-          <Stack.Screen name="HomeScreen" component={HomeScreen} />
-          <Stack.Screen name="ResetPasswordScreen" component={ResetPasswordScreen} />
-          {/* <Stack.Screen name="MedDocsScreen" component={MedDocsScreen} /> */}
-        </Stack.Navigator>
-      </NavigationContainer>
+      <AuthProvider>
+        <NavigationContainer>
+          <RootNavigator />
+        </NavigationContainer>
+      </AuthProvider>
     </Provider>
   );
 }
