@@ -92,6 +92,33 @@ export async function resetPassword(username, oldPassword, newPassword) {
   return await res.json();
 }
 
+export async function analyzeImageText(imageUri) {
+  const token = await getAccessToken();
+
+  const formData = new FormData();
+  formData.append("file", {
+    uri: imageUri,
+    name: "image.jpg",
+    type: "image/jpeg",
+  });
+
+  const res = await fetch(`${BASE_URL}/ai/process-image`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+    },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    throw new Error(`Server error: ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data.summary;
+}
+
 export async function predictSkinLesion(imageUri) {
   const token = await getAccessToken();
 
@@ -112,6 +139,68 @@ export async function predictSkinLesion(imageUri) {
   });
 
   return await res.json();
+}
+
+export async function generateMeal({
+  dish_name,
+  purpose,
+  servings,
+  cuisine,
+  dietary_restrictions,
+  max_cook_time,
+  include_macros = false,
+}) {
+  if (!dish_name || !dish_name.trim()) {
+    throw new Error("dish_name is required");
+  }
+
+  const token = await getAccessToken();
+
+  const body = {
+    dish_name,
+    ...(purpose ? { purpose } : {}),
+    ...(servings ? { servings } : {}),
+    ...(cuisine ? { cuisine } : {}),
+    ...(dietary_restrictions ? { dietary_restrictions } : {}),
+    ...(max_cook_time ? { max_cook_time } : {}),
+    include_macros,
+  };
+
+  const res = await fetch(`${BASE_URL}/diet/recipe_with_image`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Failed to fetch meal: ${res.status} ${text}`);
+  }
+
+  return await res.json();
+}
+
+export async function fetchSummary(texts) {
+  const nonEmptyTexts = Object.values(texts).filter(t => t && t.trim());
+  if (nonEmptyTexts.length === 0) {
+    return "No analyzed texts available.";
+  }
+
+  const prompt = `You are a medical assistant. Summarize the following reports into a concise summary. 
+Only mention abnormal or clinically significant results. If all results are normal, just say: "All results are within normal limits, no concerns." 
+Reports:\n${nonEmptyTexts.join("\n\n")}`;
+
+  try {
+    const response = await fetchAIResponse([{ user: { _id: 1 }, text: prompt }]);
+    return response;
+  } catch (err) {
+    console.error(err);
+    return "Failed to generate summary.";
+  }
 }
 
 export async function fetchAIResponse(history) {

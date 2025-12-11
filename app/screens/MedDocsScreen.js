@@ -1,154 +1,115 @@
 import React, { useState } from "react";
-import { ScrollView, View, Image, TouchableOpacity, Modal, TextInput, FlatList, StyleSheet, ActivityIndicator } from "react-native";
-import Background from "../components/Background";
-import Header from "../components/Header";
-import Button from "../components/Button";
-import { Text } from "react-native-paper";
-import { FormItem, FormList } from "../components/Form";
-import { UploadButton } from "../components/UploadButton";
-import * as Colors from "@bacons/apple-colors";
+import { ScrollView, View, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import ImageCard from "../components/ImageCard";
 import { pickImages } from "../helpers/imagePicker";
+import { analyzeImageText } from "../core/api";
+import MealBuilderScreen from "./MealBuilderScreen";
+import { useNavigation } from '@react-navigation/native';
 
-export default function MedDocsScreen({ navigation }) {
-  const [results, setResults] = useState(null);
+export default function MedDocsScreen() {
+  const navigation = useNavigation();
   const [images, setImages] = useState([]);
-  const [fullscreenImage, setFullscreenImage] = useState(null);
   const [texts, setTexts] = useState({});
-  const [textModal, setTextModal] = useState({ visible: false, index: null, value: "" });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState({});
 
-  const pickImagesWithResults = async () => {
-    setLoading(true);
-    try {
-      const result = await pickImages();
-      if (result) {
-        setResults(result.serverResponse);
-        setImages(prev => [...prev, ...result.assets]);
-      }
-    } catch (e) {
-      console.warn(e);
-    } finally {
-      setLoading(false);
+  const addImages = async () => {
+    const result = await pickImages();
+    if (result) {
+      setImages(prev => [...prev, ...result.assets]);
     }
   };
 
-  const openTextModal = (index) => {
-    setTextModal({ visible: true, index, value: texts[index] || "" });
-  };
-
-  const saveText = () => {
-    setTexts(prev => ({ ...prev, [textModal.index]: textModal.value }));
-    setTextModal({ visible: false, index: null, value: "" });
-  };
-
-  const onDeleteImage = (index) => {
+  const deleteImage = (index) => {
     setImages(prev => prev.filter((_, i) => i !== index));
     setTexts(prev => {
       const copy = { ...prev };
       delete copy[index];
       return copy;
     });
+    setLoading(prev => {
+      const copy = { ...prev };
+      delete copy[index];
+      return copy;
+    });
   };
 
-  const renderImageItem = ({ item, index }) => (
-    <View style={styles.imageRow}>
-      <TouchableOpacity style={{ flex: 1 }} onPress={() => setFullscreenImage(item.uri)}>
-        <Image source={{ uri: item.uri }} style={styles.previewImage} resizeMode="cover" />
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.textContainer} onPress={() => openTextModal(index)}>
-        <Text style={styles.textInside}>{texts[index] || "Tap 🔍 to add text"}</Text>
-      </TouchableOpacity>
-
-      <View style={styles.buttonColumn}>
-        <Button mode="outlined" onPress={() => {}} style={styles.smallButton}>☆</Button>
-        <Button mode="outlined" onPress={() => openTextModal(index)} style={styles.smallButton}>🔍</Button>
-        <Button mode="outlined" onPress={() => onDeleteImage(index)} style={styles.smallButton}>🗑️</Button>
-      </View>
-    </View>
-  );
+  const handleAnalyze = (index, imageUri) => {
+    Alert.alert(
+      "Analyze Text",
+      "Do you want to analyze text in this image?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Yes", onPress: async () => {
+          setLoading(prev => ({ ...prev, [index]: true }));
+          try {
+            const text = await analyzeImageText(imageUri); // запрос к серверу
+            setTexts(prev => ({ ...prev, [index]: text }));
+          } catch (err) {
+            Alert.alert("Error", "Failed to analyze text.");
+          } finally {
+            setLoading(prev => ({ ...prev, [index]: false }));
+          }
+        }}
+      ]
+    );
+  };
 
   return (
-    <Background>
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
-        <Header>Medical Documents</Header>
-
-        <FormList>
-          <FormItem>
-            <UploadButton onPress={pickImagesWithResults} />
-          </FormItem>
-        </FormList>
-
-        {loading && <ActivityIndicator size="large" style={{ marginVertical: 16 }} />}
-
-        {images.length > 0 && (
-          <FlatList
-            data={images}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={renderImageItem}
-            ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-            initialNumToRender={2}
-            removeClippedSubviews
-          />
-        )}
-
-        <FormList>
-          <FormItem>
-            <View style={{ gap: 4 }}>
-              <Text style={{ color: Colors.label, fontSize: 18, fontWeight: "600" }}>Results</Text>
-              <Text style={{ color: Colors.secondaryLabel, fontSize: 16 }}>
-                {results ? JSON.stringify(results, null, 2).slice(0, 1000) + (JSON.stringify(results).length > 1000 ? "..." : "") : "No results yet"}
-              </Text>
-            </View>
-          </FormItem>
-        </FormList>
-
-        <Button mode="contained" onPress={() => navigation.navigate("StartScreen")}>
-          Go to StartScreen
-        </Button>
-
-        {/* Fullscreen Modal */}
-        {fullscreenImage && (
-          <Modal visible={true} transparent animationType="fade" onRequestClose={() => setFullscreenImage(null)}>
-            <TouchableOpacity style={styles.fullscreenContainer} onPress={() => setFullscreenImage(null)}>
-              <Image source={{ uri: fullscreenImage }} style={styles.fullscreenImage} resizeMode="contain" />
-            </TouchableOpacity>
-          </Modal>
-        )}
-
-        {/* Text Input Modal */}
-        {textModal.visible && (
-          <Modal visible={true} transparent animationType="fade" onRequestClose={() => setTextModal({ visible: false, index: null, value: "" })}>
-            <View style={styles.modalContainer}>
-              <View style={styles.modalContent}>
-                <TextInput
-                  style={styles.modalInput}
-                  value={textModal.value}
-                  onChangeText={text => setTextModal(prev => ({ ...prev, value: text }))}
-                  placeholder="Enter text for this image"
-                  multiline
-                />
-                <Button mode="contained" onPress={saveText}>Save</Button>
-                <Button mode="outlined" onPress={() => setTextModal({ visible: false, index: null, value: "" })}>Cancel</Button>
-              </View>
-            </View>
-          </Modal>
-        )}
+    <SafeAreaView style={{ flex: 1 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
+        {images.map((img, index) => (
+          <View key={index} style={{ marginBottom: 12 }}>
+            <ImageCard
+              imageUri={img.uri}
+              text={texts[index]}
+              loading={loading[index]}
+              onAnalyze={() => handleAnalyze(index, img.uri)}
+              onEditText={() => console.log("Edit text", index)}
+              onFavorite={() => console.log("Favorite", index)}
+              onDelete={() => deleteImage(index)}
+              onPress={() => console.log("Press image", index)}
+            />
+          </View>
+        ))}
       </ScrollView>
-    </Background>
+
+
+      {/* Diet Builder button */}
+      <TouchableOpacity
+        style={[styles.addButton, { left: 24, right: "auto", backgroundColor: "#34C759" }]}
+        onPress={() => navigation.navigate("MealBuilderScreen", { texts })}
+      >
+        <Ionicons name="restaurant-outline" size={32} color="#fff" />
+      </TouchableOpacity>
+
+      {/* Add button */}
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={addImages}
+      >
+        <Ionicons name="add" size={32} color="#fff" />
+      </TouchableOpacity>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  imageRow: { flexDirection: "row", alignItems: "center", height: 150, width: "100%" },
-  previewImage: { flex: 1, height: "100%", borderRadius: 12 },
-  buttonColumn: { justifyContent: "space-between", height: "100%", marginLeft: 8 },
-  smallButton: { width: 40, height: 40, borderRadius: 8, justifyContent: "center", alignItems: "center" },
-  fullscreenContainer: { flex: 1, backgroundColor: "rgba(0,0,0,0.95)", justifyContent: "center", alignItems: "center" },
-  fullscreenImage: { width: "100%", height: "100%" },
-  textContainer: { flex: 1, height: 150, borderWidth: 1, borderColor: "#ccc", borderRadius: 8, justifyContent: "center", alignItems: "center", paddingHorizontal: 8 },
-  textInside: { color: "#333", fontSize: 16, textAlign: "center" },
-  modalContainer: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
-  modalContent: { backgroundColor: "#fff", padding: 16, borderRadius: 12, width: "80%" },
-  modalInput: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 8, marginBottom: 12, minHeight: 80, textAlignVertical: "top" },
+  addButton: {
+    position: "absolute",
+    bottom: 24,
+    right: 24,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "#007AFF",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
 });

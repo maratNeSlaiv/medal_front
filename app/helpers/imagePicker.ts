@@ -28,12 +28,8 @@ export async function pickImages() {
   });
 
   if (!result.canceled) {
-    const response = await fetch("/api/img", {
-      method: "POST",
-      body: formDataFromImagePicker(result),
-      headers: { Accept: "application/json" },
-    });
-    return { serverResponse: await response.json(), assets: result.assets };
+    // просто возвращаем выбранные файлы, без fetch
+    return { assets: result.assets };
   }
 
   return null;

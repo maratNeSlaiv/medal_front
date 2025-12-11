@@ -1,10 +1,10 @@
 import React from "react";
-import { ScrollView, StyleSheet, View, Image } from "react-native";
+import { ScrollView, StyleSheet, View, Image, TouchableOpacity } from "react-native";
 import { Text } from "react-native-paper";
+import { Ionicons } from "@expo/vector-icons";
 
 import Background from "../components/Background";
 import Header from "../components/Header";
-import BackButton from "../components/BackButton";
 
 import { theme } from "../core/theme";
 
@@ -13,7 +13,15 @@ export default function MealDetailScreen({ navigation, route }) {
 
   return (
     <Background>
-      <BackButton goBack={navigation.goBack} />
+      {/* Кнопка закрытия (крестик) */}
+      <TouchableOpacity
+        style={[styles.closeButton, { padding: 8 }]} // увеличиваем область нажатия
+        onPress={() => navigation.goBack()}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} // дополнительная зона клика
+      >
+        <Ionicons name="close-outline" size={32} color="#007AFF" />
+      </TouchableOpacity>
+
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Image style={styles.image} source={{ uri: imageUrl }} />
 
@@ -56,6 +64,7 @@ export default function MealDetailScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   scrollContainer: {
     padding: 16,
+    paddingTop: 60, // чтобы крестик не перекрывал контент
   },
   image: {
     width: "100%",
@@ -97,5 +106,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     marginBottom: 6,
+  },
+  closeButton: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    zIndex: 10,
   },
 });

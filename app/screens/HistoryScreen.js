@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
-import { predictSkinLesion } from "../core/api"; // твой API-файл
+import { predictSkinLesion } from "../core/api";
 
 export default function HistoryScreen() {
   const [currentImage, setCurrentImage] = useState(null);
@@ -15,8 +15,11 @@ export default function HistoryScreen() {
     const result = await ImagePicker.launchImageLibraryAsync({
       quality: 0.7,
       base64: false,
+      format: 'jpeg'
     });
-    console.log(result); 
+    console.log(result)
+    console.log(result.assets[0].mimeType);
+    console.log(result.assets[0].fileName);
 
     if (!result.canceled && result.assets.length > 0) {
       setLoading(true);

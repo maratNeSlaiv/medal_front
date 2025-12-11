@@ -7,3 +7,5 @@ export { default as HistoryScreen } from "./HistoryScreen";
 export { default as TakePictureScreen } from "./TakePictureScreen";
 export { default as UserInfoScreen } from "./UserInfoScreen";
 export { default as MedDocsScreen } from "./MedDocsScreen";
+export { default as MealBuilderScreen } from "./MealBuilderScreen";
+export { default as MealDetailScreen } from "./MealDetailScreen";

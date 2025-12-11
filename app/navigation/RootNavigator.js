@@ -8,6 +8,8 @@ import {
   ResetPasswordScreen,
   HomeScreen,
   MedDocsScreen,
+  MealBuilderScreen,
+  MealDetailScreen
 } from "../screens";
 
 const Stack = createStackNavigator();
@@ -23,6 +25,8 @@ export default function RootNavigator() {
         <>
           <Stack.Screen name="HomeScreen" component={HomeScreen} />
           <Stack.Screen name="MedDocsScreen" component={MedDocsScreen} />
+          <Stack.Screen name="MealBuilderScreen" component={MealBuilderScreen} />
+          <Stack.Screen name="MealDetailScreen" component={MealDetailScreen} />
         </>
       ) : (
         <>
