@@ -20,7 +20,6 @@ export default function ChatScreen({ navigation }) {
   const keyboardVerticalOffset =
     insets.bottom + tabbarHeight + (Platform.OS === "ios" ? 44 : 0);
 
-  // Инициализация с приветственным сообщением
   useEffect(() => {
     setMessages([
       {
@@ -34,19 +33,10 @@ export default function ChatScreen({ navigation }) {
 
   const onSend = useCallback(
     async (newMessages = []) => {
-      // Добавляем сообщение пользователя
       setMessages(prev => GiftedChat.append(prev, newMessages));
-
-      // Показываем, что AI печатает
       setIsTyping(true);
-
-      // История сообщений для AI
       const history = [...messages, ...newMessages];
-
-      // Получаем ответ AI
       const aiText = await fetchAIResponse(history);
-
-      // Создаём сообщение AI
       const aiMessage = {
         _id: Math.random().toString(36).substring(7),
         text: aiText,
@@ -54,7 +44,6 @@ export default function ChatScreen({ navigation }) {
         user: { _id: 2, name: "AI", avatar: "https://placeimg.com/140/140/tech" },
       };
 
-      // Добавляем сообщение AI в чат и убираем индикатор печати
       setMessages(prev => GiftedChat.append(prev, [aiMessage]));
       setIsTyping(false);
     },

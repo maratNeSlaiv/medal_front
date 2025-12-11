@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
-import { predictMole } from "../core/api"; // твой API-файл
+import { predictSkinLesion } from "../core/api"; // твой API-файл
 
 export default function HistoryScreen() {
   const [currentImage, setCurrentImage] = useState(null);
@@ -11,21 +11,24 @@ export default function HistoryScreen() {
   const handlePickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") return alert("Permission to access gallery is required.");
-
+    
     const result = await ImagePicker.launchImageLibraryAsync({
       quality: 0.7,
       base64: false,
     });
+    console.log(result); 
 
-    if (!result.cancelled) {
+    if (!result.canceled && result.assets.length > 0) {
       setLoading(true);
       try {
-        const prediction = await predictMole(result.uri);
+        const imageUri = result.assets[0].uri;
+        const prediction = await predictSkinLesion(imageUri);
         setCurrentImage({
           id: Date.now().toString(),
           date: new Date().toISOString().split("T")[0],
           image: result.uri,
-          probability: prediction.probability, // предполагаем, что API возвращает { probability: number }
+          probability: prediction.confidence,
+          predictedClass: prediction.predicted_class,
         });
       } catch (err) {
         alert("Failed to analyze mole.");
@@ -51,7 +54,10 @@ export default function HistoryScreen() {
         <View style={styles.info}>
           <Text style={styles.date}>{currentImage.date}</Text>
           <Text style={[styles.prob, { color }]}>
-            Cancer probability: {currentImage.probability}%
+            Prediction: {currentImage.predictedClass} {/* показываем класс */}
+          </Text>
+          <Text style={[styles.prob, { color }]}>
+            Cancer probability: {(currentImage.probability * 100).toFixed(2)}% {/* вероятность в процентах */}
           </Text>
         </View>
       </View>

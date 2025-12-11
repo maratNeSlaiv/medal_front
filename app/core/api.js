@@ -92,7 +92,7 @@ export async function resetPassword(username, oldPassword, newPassword) {
   return await res.json();
 }
 
-export async function predictMole(imageUri) {
+export async function predictSkinLesion(imageUri) {
   const token = await getAccessToken();
 
   const formData = new FormData();
@@ -102,7 +102,7 @@ export async function predictMole(imageUri) {
     type: "image/jpeg",
   });  
 
-  const res = await fetch(`${BASE_URL}/ai/mole_detection`, {
+  const res = await fetch(`${BASE_URL}/ai/skin_lesion`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
